@@ -68,6 +68,9 @@ class Cleaner(clean.Cleaner):
 
     def remove_rendundant_html_spans(self, html):
         """Remove redundant color span tags"""
+        if not isinstance(html, unicode):
+            raise ValueError('We only support cleaning unicode HTML fragments')
+        
         tree = soup_fromstring(u'<div id="parsed_and_cleaned_html_content">' + html + '</div>', features="html.parser")
         while self._remove_rendundant_html_spans_helper(tree):
             pass # Keep re-cleaning the tree until it is completely cleaned
