@@ -75,9 +75,9 @@ class APIMeta(type):
                     continue
                 if not hasattr(new_class, method):
                     raise APIError("Class %s does not implement method %s from API %s" % (new_class, method, interface))
-                interface_spec = inspect.getargspec(interface_method)
-                new_class_spec = inspect.getargspec(getattr(new_class, method))
-                if interface_spec != new_class_spec:
+                interface_spec = inspect.getfullargspec(interface_method)
+                new_class_spec = inspect.getfullargspec(getattr(new_class, method))
+                if interface_spec[:4] != new_class_spec[:4]:  # [:4] to match old getargspec
                     raise APIError("Class %s has a different signature for method %s from the declaration in API %s" % (new_class, method, interface))
         return new_class
 

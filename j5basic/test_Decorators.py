@@ -57,7 +57,7 @@ class TestDecoratorDecorator(object):
 
     @staticmethod
     def override_x(f, *args, **kw):
-        args, kw = Decorators.override_arg("x", 50, args, kw, inspect.getargspec(f))
+        args, kw = Decorators.override_arg("x", 50, args, kw, inspect.getfullargspec(f)[:4])
         return f(*args, **kw)
 
     @staticmethod
@@ -337,7 +337,7 @@ def test_get_right_args():
     rightargs = Decorators.getrightargs(my_arg_class, {'foo': 1, 'bar': 2, 'bob': 3, 'mary': 4})
     DictUtils.assert_dicts_equal(rightargs, {'foo': 1, 'filip': None})
 
-    rightargs, rightkw = Decorators.conform_to_argspec((1, 2), {'billybob': 5, 'jim': 3}, inspect.getargspec(my_arg_function))
+    rightargs, rightkw = Decorators.conform_to_argspec((1, 2), {'billybob': 5, 'jim': 3}, inspect.getfullargspec(my_arg_function)[:4])
     assert rightargs == [1, 2, 3]
     assert not rightkw
 
@@ -348,15 +348,15 @@ def test_get_or_pop_arg():
     args = (1, 2)
     kw = {'jim': 3}
 
-    assert Decorators.get_or_pop_arg('bar', args, kw, inspect.getargspec(my_arg_function)) == 2
+    assert Decorators.get_or_pop_arg('bar', args, kw, inspect.getfullargspec(my_arg_function)[:4]) == 2
     assert args == (1, 2)
     DictUtils.assert_dicts_equal(kw, {'jim': 3})
-    assert Decorators.get_or_pop_arg('jim', args, kw, inspect.getargspec(my_arg_function)) == 3
+    assert Decorators.get_or_pop_arg('jim', args, kw, inspect.getfullargspec(my_arg_function)[:4]) == 3
     assert args == (1, 2)
     DictUtils.assert_dicts_equal(kw, {'jim': 3})
 
     kw['billybob'] = 4
-    assert Decorators.get_or_pop_arg('billybob', args, kw, inspect.getargspec(my_arg_function)) == 4
+    assert Decorators.get_or_pop_arg('billybob', args, kw, inspect.getfullargspec(my_arg_function)[:4]) == 4
     assert args == (1, 2)
     DictUtils.assert_dicts_equal(kw, {'jim': 3})
 
