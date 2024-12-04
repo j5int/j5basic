@@ -18,6 +18,7 @@ from builtins import object
 import inspect, types, itertools
 import logging
 import time
+from j5basic.Converters import convert_arg_spec, SmallArgSpec
 
 #
 # Utility Functions (for working with other functions)
@@ -55,6 +56,65 @@ def getrightargs(function, args):
         return newdict
     return args
 
+
+def formatargspec(args, varargs=None, varkw=None, defaults=None,
+                  kwonlyargs=(), kwonlydefaults={}, annotations={},
+                  formatarg=str,
+                  formatvarargs=lambda name: '*' + name,
+                  formatvarkw=lambda name: '**' + name,
+                  formatvalue=lambda value: '=' + repr(value),
+                  formatreturns=lambda text: ' -> ' + text,
+                  formatannotation=inspect.formatannotation):
+    """Format an argument spec from the values returned by getfullargspec.
+
+    The first seven arguments are (args, varargs, varkw, defaults,
+    kwonlyargs, kwonlydefaults, annotations).  The other five arguments
+    are the corresponding optional formatting functions that are called to
+    turn names and values into strings.  The last argument is an optional
+    function to format the sequence of arguments.
+
+    Deprecated since Python 3.5: use the `signature` function and `Signature`
+    objects.
+
+    NOTE: This function was copied from inspect on python 3.9.10 since it has been removed in python 3.11.
+    This was the safer option rather than trying to mimic the behaviour using `inspect.Signature` directly.
+    As such, the deprecation warning has also been removed.
+    """
+
+    def formatargandannotation(arg):
+        result = formatarg(arg)
+        if arg in annotations:
+            result += ': ' + formatannotation(annotations[arg])
+        return result
+    specs = []
+    if defaults:
+        firstdefault = len(args) - len(defaults)
+    for i, arg in enumerate(args):
+        spec = formatargandannotation(arg)
+        if defaults and i >= firstdefault:
+            spec = spec + formatvalue(defaults[i - firstdefault])
+        specs.append(spec)
+    if varargs is not None:
+        specs.append(formatvarargs(formatargandannotation(varargs)))
+    else:
+        if kwonlyargs:
+            specs.append('*')
+    if kwonlyargs:
+        for kwonlyarg in kwonlyargs:
+            spec = formatargandannotation(kwonlyarg)
+            if kwonlydefaults and kwonlyarg in kwonlydefaults:
+                spec += formatvalue(kwonlydefaults[kwonlyarg])
+            specs.append(spec)
+    if varkw is not None:
+        specs.append(formatvarkw(formatargandannotation(varkw)))
+    result = '(' + ', '.join(specs) + ')'
+    if 'return' in annotations:
+        result += formatreturns(formatannotation(annotations['return']))
+    return result
+
+
+def getargspec(*args, **kwargs) -> SmallArgSpec:
+    return convert_arg_spec(inspect.getfullargspec(*args, **kwargs))
 
 #
 # decorator decorator (for making other decorators)
@@ -120,10 +180,10 @@ class decorator_helpers(object):
         if varargs: argnames.append(varargs)
         if varkwargs: argnames.append(varkwargs)
         counter = itertools.count()
-        fullsign = inspect.formatargspec(
+        fullsign = formatargspec(
             regargs, varargs, varkwargs, defaults,
             formatvalue=lambda value: "=defarg[%i]" % next(counter))[1:-1]
-        shortsign = inspect.formatargspec(
+        shortsign = formatargspec(
             regargs, varargs, varkwargs, defaults,
             formatvalue=lambda value: "")[1:-1]
         dic = dict(("arg%s" % n, name) for n, name in enumerate(argnames))
