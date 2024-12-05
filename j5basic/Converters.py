@@ -7,6 +7,20 @@ standard_library.install_aliases()
 from builtins import *
 from builtins import object
 import logging
+from typing import NamedTuple
+from inspect import FullArgSpec
+
+
+SmallArgSpec = NamedTuple("SmallArgSpec", [("args", list), ("varargs", str), ("keywords", str), ("defaults", list)])
+
+def convert_arg_spec(full_argspec: FullArgSpec) -> SmallArgSpec:
+    return SmallArgSpec(
+        args=full_argspec.args,
+        varargs=full_argspec.varargs,
+        keywords=full_argspec.varkw,
+        defaults=full_argspec.defaults
+    )
+
 
 class Converter(object):
     string_unit_dict = {} # override in child
