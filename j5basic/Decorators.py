@@ -43,7 +43,7 @@ def getrightargs(function, args):
             return {}
         else:
             function = function.__init__
-    argnames, varargs, varkw, defaults, *_ = inspect.getfullargspec(function)
+    argnames, varargs, varkw, defaults = getargspec(function)
     if varkw == None:   # Can't accept random keywords
         newdict = {}
         for arg in argnames:
@@ -136,7 +136,7 @@ class decorator_helpers(object):
            - arg0 ... argn (shortcuts for the names of the arguments)"""
 
         assert inspect.ismethod(func) or inspect.isfunction(func) or isinstance(func, classmethod), "getinfo can only be used with a function or class method"
-        regargs, varargs, varkwargs, defaults, *_ = inspect.getfullargspec(func)
+        regargs, varargs, varkwargs, defaults = getargspec(func)
         if extendedargs:
             if defaults is None:
                 defaults = []

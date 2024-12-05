@@ -30,6 +30,7 @@ from builtins import *
 from builtins import object
 from future.utils import PY3
 import inspect
+from j5basic.Decorators import getargspec
 
 if not PY3:
     INSPECT_METHOD = inspect.ismethod
@@ -75,9 +76,9 @@ class APIMeta(type):
                     continue
                 if not hasattr(new_class, method):
                     raise APIError("Class %s does not implement method %s from API %s" % (new_class, method, interface))
-                interface_spec = inspect.getfullargspec(interface_method)
-                new_class_spec = inspect.getfullargspec(getattr(new_class, method))
-                if interface_spec[:4] != new_class_spec[:4]:  # [:4] to match old getargspec
+                interface_spec = getargspec(interface_method)
+                new_class_spec = getargspec(getattr(new_class, method))
+                if interface_spec != new_class_spec:
                     raise APIError("Class %s has a different signature for method %s from the declaration in API %s" % (new_class, method, interface))
         return new_class
 
